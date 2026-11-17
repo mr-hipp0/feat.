@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf6ed">
+  <meta name="description" content="You know the names. Know the album? Guess albums from their guest artists, unlock more clues, and build your streak.">
+  <title>FEAT. — Guess the album</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="catalog-a.js" defer></script>
+  <script src="catalog-b.js" defer></script>
+  <script src="catalog-expanded.js" defer></script>
+  <script src="artwork.js" defer></script>
+  <script src="preview-tracks.js" defer></script>
+  <script src="engine.js" defer></script>
+  <script src="audio.js" defer></script>
+  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="audio.css">
+</head>
+<body>
+  <a class="skip-link" href="#album-search">Skip to your guess</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="FEAT. home"><span class="record-logo" aria-hidden="true"></span><span class="wordmark">FEAT<span>.</span></span></a>
+      <p class="brand-caption">For the liner-note nerds.</p>
+      <div class="scoreboard" aria-label="Your streaks">
+        <div class="score"><span class="score-icon" aria-hidden="true">🔥</span><span><span class="score-label">Streak</span><strong id="current-streak">0</strong></span></div>
+        <span class="score-divider" aria-hidden="true"></span>
+        <div class="score best"><span class="score-icon" aria-hidden="true">✳</span><span><span class="score-label">Best</span><strong id="best-streak">0</strong></span></div>
+      </div>
+    </header>
+
+    <nav class="game-toolbar" aria-label="Game preferences">
+      <div id="genre-control" class="genre-control">
+        <button id="genre-select" class="genre-trigger" type="button" aria-label="Album genre" aria-haspopup="menu" aria-expanded="false" aria-controls="genre-menu"><span id="genre-label">All genres</span><span id="genre-count" class="genre-count" aria-hidden="true"></span><svg class="genre-chevron" aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 8 4 4 4-4"/></svg></button>
+        <div id="genre-menu" class="genre-menu" role="menu" aria-labelledby="genre-menu-title" hidden>
+          <div class="genre-menu-heading" role="presentation"><span id="genre-menu-title">Find your aisle</span><span>Albums</span></div>
+          <div id="genre-options" class="genre-options" role="presentation"></div>
+          <p class="genre-menu-note" role="presentation">Starts a new album immediately.</p>
+        </div>
+      </div>
+      <div class="toolbar-actions"><button id="how-to-button" class="text-button" type="button"><span aria-hidden="true">?</span> How to play</button><button id="settings-button" class="text-button" type="button"><svg aria-hidden="true" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h14M3 15h14M7 2v6m6 4v6"/></svg>Settings<span id="settings-dot" class="settings-dot" hidden></span></button></div>
+    </nav>
+
+    <main id="game" class="game-main">
+      <div class="heading-group"><p class="eyebrow">THE LINER-NOTE QUIZ</p><h1>You know the names.<br>Know the album?</h1><p class="intro">Guess the album from the people behind it.</p><p class="pool-note"><span class="live-dot" aria-hidden="true"></span><span id="pool-label">Loading the record shelves…</span></p></div>
+
+      <div id="empty-state" class="empty-state" hidden><span class="empty-record" aria-hidden="true">◎</span><h2>A little quiet in this aisle.</h2><p id="empty-message">Try another genre or include more credit types.</p><button id="empty-settings" class="primary-button" type="button">Adjust settings</button></div>
+
+      <section id="round-panel" class="round-panel" aria-label="Current album puzzle">
+        <div class="clue-meta"><p id="clue-count">Revealing the first third</p><span id="credit-mode" class="credit-mode">Guest artists</span></div>
+        <div id="clue-well" class="clue-well"><div id="clues" class="clues" aria-label="Revealed collaborators"></div></div>
+        <div class="reveal-stages" aria-label="Clue reveal progress"><div class="reveal-stage"><span class="stage-bar"></span><span>1/3</span></div><div class="reveal-stage"><span class="stage-bar"></span><span>2/3</span></div><div class="reveal-stage"><span class="stage-bar"></span><span>3/3</span></div></div>
+
+        <form id="guess-form" class="guess-form" novalidate>
+          <label for="album-search">Your guess</label>
+          <div class="answer-row"><div class="search-field"><svg aria-hidden="true" viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="album-search" type="search" placeholder="Search for an album…" autocomplete="off" spellcheck="false" role="combobox" aria-controls="search-options" aria-expanded="false" aria-autocomplete="list" aria-describedby="guess-status"></div><button id="guess-button" class="primary-button guess-button" type="submit" disabled>Guess <span aria-hidden="true">↗</span></button></div>
+          <div id="search-options" class="search-options" role="listbox" aria-label="Album suggestions" hidden></div>
+        </form>
+        <div id="guess-status-row" class="guess-status-row"><p id="guess-status" role="status" aria-live="polite">3 guesses. Trust your music taste.</p><button id="skip-guess" class="quiet-button" type="button"><span id="skip-label">Skip a guess</span><svg id="give-up-icon" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M4 17V3m0 0c4-3 8 3 12 0v8c-4 3-8-3-12 0"/></svg><span id="skip-arrow" aria-hidden="true">→</span></button></div>
+        <ol id="guess-history" class="guess-history" aria-label="Your previous guesses"></ol>
+        <div id="finished-actions" class="finished-actions" hidden><button id="show-result" class="primary-button" type="button">Back to the album <span aria-hidden="true">↗</span></button><button id="next-from-clues" class="text-button" type="button">Next album →</button></div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>Small clues. Big music opinions.</span><div><span id="catalog-size">Loading albums…</span><span aria-hidden="true">·</span><button id="about-button" type="button">About &amp; sources</button></div></footer>
+    <p id="storage-notice" class="storage-notice" hidden>Browser storage is unavailable. Your game works, but progress won't survive a refresh.</p>
+  </div>
+  <div id="celebration" class="celebration" aria-hidden="true"></div>
+
+  <dialog id="result" class="result-scene" aria-labelledby="answer-title" aria-describedby="result-kicker">
+    <header class="result-nav"><span class="brand" aria-label="FEAT."><span class="record-logo" aria-hidden="true"></span><span class="wordmark">FEAT<span>.</span></span></span><button id="view-clues" class="text-button" type="button">← View clues</button></header>
+    <div class="result-stage">
+      <div id="album-art" class="result-art" aria-hidden="true"><span class="result-vinyl"></span><span id="art-initials"></span><img id="cover-image" alt="" hidden></div>
+      <div class="result-identity"><p id="result-kicker" class="eyebrow">Good ear.</p><h2 id="answer-title"></h2><p id="answer-artist"></p></div>
+      <div id="outcome-stamp" class="outcome-stamp">FOUND IT!</div>
+      <p id="result-streak" class="result-streak" role="status" aria-live="polite"></p>
+      <p id="record-message" class="record-message" hidden>New personal best. That's a good run.</p>
+      <div class="result-primary-actions"><button id="next-album" class="primary-button" type="button">Next album <span aria-hidden="true">→</span></button><button id="share-result" class="result-share" type="button">Copy result <span aria-hidden="true">↗</span></button></div>
+      <div id="reveal-player" class="reveal-player" aria-label="Album preview"></div>
+      <button id="view-credits" class="quiet-button result-credits" type="button">View the liner notes ↗</button>
+    </div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="dialog settings-dialog" aria-labelledby="settings-title">
+    <form method="dialog"><button class="dialog-close" aria-label="Close settings" value="close">×</button></form>
+    <p class="eyebrow">MAKE IT YOUR GAME</p><h2 id="settings-title">Settings</h2><p class="dialog-intro">Find your era. Choose your clues.</p>
+    <fieldset class="difficulty-filter"><legend>Difficulty</legend><div id="difficulty-options" class="difficulty-options" role="radiogroup" aria-label="Album difficulty" aria-describedby="difficulty-help"></div><p id="difficulty-help" class="difficulty-help">Every matching album, from huge hits to deeper cuts. Includes Easy and Medium.</p></fieldset>
+    <fieldset class="decade-filter"><legend>Release decades</legend><div class="decade-picker-top"><p id="decade-help">Pick one or mix a few.</p><button id="all-decades" class="decade-all" type="button" aria-pressed="true"><span aria-hidden="true">✓</span>All decades</button></div><div id="decade-options" class="decade-options" role="group" aria-label="Release decades" aria-describedby="decade-help"></div></fieldset>
+    <h3 class="settings-section-label">The clues</h3>
+    <div class="setting-row"><div><strong>Guest artists</strong><p>Including verified unlisted performances.</p></div><span class="always-on">Always on</span></div>
+    <label class="setting-row"><span><strong>Notable producers</strong><span class="setting-description">The people who shaped the sound.</span></span><input id="producer-toggle" type="checkbox" class="toggle"></label>
+    <label class="setting-row"><span><strong>Notable songwriters</strong><span class="setting-description">Direct writing credits. Samples stay out.</span></span><input id="songwriter-toggle" type="checkbox" class="toggle"></label>
+    <div class="settings-pool"><strong id="settings-pool-count" role="status" aria-live="polite"></strong><span>Every puzzle needs at least 3 distinct collaborators across your selected credit types.</span></div>
+    <h3 class="settings-section-label">The sound</h3>
+    <label class="setting-row"><span><strong>Open player after reveal</strong><span class="setting-description">Tap Play in the player to hear the music.</span></span><input id="autoplay-toggle" type="checkbox" class="toggle" checked></label>
+    <div id="direct-volume-controls" hidden><label class="volume-setting" for="volume-setting"><span>Preview volume</span><output id="volume-label">25%</output></label><input id="volume-setting" class="volume-range" type="range" min="0" max="100" step="5" value="25"></div>
+    <p class="dialog-footnote">Changes save automatically. Game filters start a fresh album immediately; your streak stays. Use Deezer's player for playback and sound controls.</p>
+    <button id="settings-done" class="primary-button full-width" type="button">Done <span aria-hidden="true">✓</span></button>
+  </dialog>
+
+  <dialog id="how-to-dialog" class="dialog" aria-labelledby="how-to-title"><form method="dialog"><button class="dialog-close" aria-label="Close how to play">×</button></form><p class="eyebrow">A QUICK SPIN</p><h2 id="how-to-title">Read the names.<br>Name the record.</h2><ol class="instructions"><li><span>01</span><div><strong>Start with a third.</strong><p>You'll see the first third of an album's collaborators. The main artist stays hidden.</p></div></li><li><span>02</span><div><strong>Search. Select. Guess.</strong><p>Pick an album from the suggestions, then hit Guess. A miss reveals another third. You get 3 tries.</p></div></li><li><span>03</span><div><strong>Keep the streak alive.</strong><p>Each solved album adds 1. Three misses or giving up end the run; your best streak stays saved.</p></div></li></ol><p class="dialog-footnote">Skip uses one try. On your final guess, Give up reveals the answer. Changing difficulty, genre, decades, or credit types starts a matching new puzzle immediately. Names are shuffled once per round.</p><button class="primary-button full-width" type="button" data-close="how-to-dialog">Got it. Let’s play <span aria-hidden="true">↗</span></button></dialog>
+
+  <dialog id="about-dialog" class="dialog about-dialog" aria-labelledby="about-title"><form method="dialog"><button class="dialog-close" aria-label="Close about">×</button></form><p class="eyebrow">THE SMALL PRINT, BUT SMALLER</p><h2 id="about-title">Made for music people.</h2><p class="dialog-intro">Inspired by HIVEMIND's “Guess the Album from the Features.” An independent game with a sourced album catalog and no account required.</p><div id="catalog-details" class="about-section"></div><div class="about-section"><h3>How credits work</h3><p>Verified guest performances can count even when they aren't in a track title. Selected producers and direct songwriters are optional. Each person counts once; the album artist and sample-only credits are excluded. Clues use the edition listed in the answer credits.</p></div><div class="about-section"><h3>Your scores stay here</h3><p>Progress, preferences, and streaks are stored in this browser. Best streaks are personal records, across genres and settings.</p></div><div class="about-links"><a href="https://www.youtube.com/watch?v=FGeXy8AtL20" target="_blank" rel="noopener noreferrer">The original HIVEMIND video ↗</a><a href="https://kworb.net/spotify/albums.html" target="_blank" rel="noopener noreferrer">Streaming ranking reference ↗</a></div></dialog>
+
+  <dialog id="credits-dialog" class="dialog credits-dialog" aria-labelledby="credits-title"><form method="dialog"><button class="dialog-close" aria-label="Close album credits">×</button></form><p class="eyebrow">THE LINER NOTES</p><h2 id="credits-title"></h2><p id="credits-edition" class="dialog-intro"></p><ul id="credits-list" class="credits-list"></ul><div id="credits-sources" class="about-links"></div></dialog>
+
+  <noscript><div class="noscript">FEAT. needs JavaScript to reveal clues and check guesses. Please enable it and refresh.</div></noscript>
+</body>
+</html>
+
+
